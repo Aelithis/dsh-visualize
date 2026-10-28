@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
-import { buildFrameDoc, RESOURCE_ORIGINS, sanitizeCssValue } from '../src/shell.ts'
+import { buildFrameDoc, sanitizeCssValue } from '../src/shell.ts'
 import { PAGE_CONFIG_GLOBAL, STYLE_IDS, STYLES, styleIdFrom } from '../src/style.ts'
 import { apply } from '../src/index.ts'
 import { activeStyleSection, CUSTOM_STYLE_MAX_BYTES, readCustomStyles, styleFileLocations } from '../src/style-guide.ts'
@@ -36,16 +36,11 @@ describe('frame styles', () => {
     }
   })
 
-  it('loads a webfont only for styles that set one, from an origin the CSP allows', () => {
+  it('uses system fonts without external stylesheets for every preset', () => {
     for (const id of STYLE_IDS) {
       const doc = buildFrameDoc({ ...host, style: id })
-      const links = [...doc.matchAll(/<link rel="stylesheet" href="([^"]+)">/gu)].map(m => m[1]!)
-      if (STYLES[id].fontHref === undefined) {
-        expect(links).toEqual([])
-        continue
-      }
-      expect(links).toHaveLength(1)
-      expect(RESOURCE_ORIGINS).toContain(new URL(links[0]!.replaceAll('&amp;', '&')).origin)
+      expect(doc).not.toContain('<link rel="stylesheet"')
+      expect(doc).not.toContain('fonts.googleapis.com')
     }
   })
 
@@ -97,7 +92,7 @@ describe('custom style files', () => {
     expect(await readCustomStyles({ home, workspace })).toEqual([])
     const section = await activeStyleSection('paper', { home, workspace })
     expect(section).toContain('### Built-in style: paper')
-    expect(section).toContain('KaTeX 0.16.29')
+    expect(section).toContain('self-contained SVG')
     expect(section).not.toContain('### User style')
   })
 

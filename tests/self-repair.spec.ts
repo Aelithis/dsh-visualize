@@ -254,7 +254,7 @@ describe('self-repair: when never to steer', () => {
     await expect(h.stop()).resolves.toBe(0)
   })
 
-  it('is not installed when the setting is off, and is by default', () => {
+  it('installs only when the setting is explicitly enabled', () => {
     const make = () => {
       const listeners: string[] = []
       const ctx = {
@@ -267,6 +267,9 @@ describe('self-repair: when never to steer', () => {
       } as unknown as Context
       return { ctx, listeners }
     }
+    const defaults = make()
+    apply(defaults.ctx, { maxFragmentBytes: 1000, style: 'whale' })
+    expect(defaults.listeners).not.toContain('agent/turn-stopping')
     const off = make()
     apply(off.ctx, { maxFragmentBytes: 1000, style: 'whale', selfRepair: false })
     expect(off.listeners).not.toContain('agent/turn-stopping')

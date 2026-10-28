@@ -11,7 +11,7 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { PAGE_CONFIG_GLOBAL, STYLES, type StyleId } from '../src/style.ts'
+import { PAGE_CONFIG_GLOBAL, type StyleId } from '../src/style.ts'
 import { VisualizeCard } from '../src/client/VisualizeCard.tsx'
 
 const FRAGMENT = '<div id="lab">hi</div>'
@@ -38,8 +38,8 @@ function settled(style: StyleId, args: Record<string, unknown>) {
   }
 }
 
-/** Whether a frame document carries a style's own webfont. */
-const inStyle = (doc: string, style: StyleId) => doc.includes(STYLES[style].fontHref!.replaceAll('&', '&amp;'))
+/** Whether a frame document carries the selected style. */
+const inStyle = (doc: string, style: StyleId) => doc.includes('var STYLE = ' + JSON.stringify(style) + ';')
 
 describe('live card style', () => {
   beforeAll(() => {

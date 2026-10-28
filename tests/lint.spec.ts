@@ -21,12 +21,11 @@ function only(fragment: string, code: LintCode) {
   return hits[0]!
 }
 
-/** A small, clean card: root id, theme variables, pinned CDN script. */
+/** A small, clean card: root id, theme variables, inline script. */
 const CLEAN = `<div id="lab">
   <style>#lab .bar { background: var(--viz-series-1); color: var(--foreground); }</style>
   <div class="bar" id="lab-bar"></div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script>
   var root = document.getElementById('lab');
   root.querySelector('#lab-bar').textContent = 'ok';
@@ -116,7 +115,7 @@ describe('VZ005 / VZ006 / VZ105 / VZ106 external resources', () => {
 
   it('VZ005/VZ006: a .src assignment only warns, since the receiver may not be an element', () => {
     expect(severities('<div id="a"></div><script>img.src = "https://evil.example/x.png"</script>')).toEqual(['VZ005 warn'])
-    expect(severities('<div id="a"></div><script>s.src = "https://cdn.jsdelivr.net/npm/chart.js"</script>')).toEqual(['VZ006 warn'])
+    expect(severities('<div id="a"></div><script>s.src = "https://cdn.jsdelivr.net/npm/chart.js"</script>')).toEqual(['VZ005 warn'])
     expect(severities('<div id="a"></div><script type="module">import("https://evil.example/m.js")</script>')).toEqual(['VZ005 error'])
   })
 
@@ -131,12 +130,12 @@ describe('VZ005 / VZ006 / VZ105 / VZ106 external resources', () => {
     }
   })
 
-  it('VZ005: plain http to an allowlisted host', () => {
+  it('VZ005: plain http is also blocked', () => {
     expect(only('<div id="a"></div><script src="http://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>', 'VZ005').message)
-      .toContain('https only')
+      .toContain('not on the allowlist')
   })
 
-  it('accepts allowlisted, pinned, inline, and fragment-local URLs', () => {
+  it('blocks remote libraries and fonts while accepting inline and fragment-local URLs', () => {
     const fragment = `<div id="a">
 <link rel="preconnect" href="https://example.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter&display=swap">
@@ -148,28 +147,29 @@ describe('VZ005 / VZ006 / VZ105 / VZ106 external resources', () => {
 <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 <script type="module">import confetti from 'https://esm.sh/canvas-confetti@1.9.3'; import { x } from "https://esm.sh/v135/lodash-es@4.17.21/x.js";</script>
 <script>var link = 'see https://example.com for details';</script>`
-    expect(codes(fragment)).toEqual([])
+    expect(codes(fragment)).toEqual(Array(6).fill('VZ005'))
+    expect(codes('<div id="a"><img src="data:image/png;base64,iVBORw0KGgo="><svg><use href="#mark"/></svg></div>')).toEqual([])
   })
 
-  it('VZ006: CDN URL with no version or a moving tag', () => {
-    expect(only('<div id="a"></div><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>', 'VZ006').message).toContain('chart.js')
-    expect(codes('<div id="a"></div><script src="https://unpkg.com/d3@latest/dist/d3.min.js"></script>')).toContain('VZ006')
-    expect(codes('<div id="a"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/chart.min.js"></script>')).toContain('VZ006')
-    expect(codes('<div id="a"></div><script type="module">import x from "https://esm.sh/@scope/pkg";</script>')).toContain('VZ006')
+  it('VZ005: unversioned and moving CDN URLs are blocked', () => {
+    expect(only('<div id="a"></div><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>', 'VZ005').message).toContain('cdn.jsdelivr.net')
+    expect(codes('<div id="a"></div><script src="https://unpkg.com/d3@latest/dist/d3.min.js"></script>')).toContain('VZ005')
+    expect(codes('<div id="a"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/chart.min.js"></script>')).toContain('VZ005')
+    expect(codes('<div id="a"></div><script type="module">import x from "https://esm.sh/@scope/pkg";</script>')).toContain('VZ005')
   })
 
-  it('VZ105: a range or partial version only warns', () => {
-    const f = only('<div id="a"></div><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>', 'VZ105')
-    expect(f.severity).toBe('warn')
+  it('VZ005: a range or partial version is blocked', () => {
+    const f = only('<div id="a"></div><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>', 'VZ005')
+    expect(f.severity).toBe('error')
     expect(codes('<div id="a"></div><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>')).not.toContain('VZ006')
   })
 
-  it('VZ106: relative and bare URLs warn; bare specifiers pass with an import map', () => {
+  it('VZ106: relative and bare URLs warn; remote import maps are blocked', () => {
     expect(only('<div id="a"></div><script src="chart.js"></script>', 'VZ106').severity).toBe('warn')
     expect(codes('<div id="a"></div><script type="module">import * as d3 from "d3";</script>')).toContain('VZ106')
     const mapped = '<div id="a"></div><script type="importmap">{"imports":{"d3":"https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm"}}</script>'
       + '<script type="module">import * as d3 from "d3";</script>'
-    expect(codes(mapped)).toEqual([])
+    expect(codes(mapped)).toEqual(['VZ005'])
     expect(codes('<script type="importmap">{"imports":{"d3":"https://evil.test/d3.js"}}</script><div id="a"></div>')).toContain('VZ005')
   })
 })
@@ -205,11 +205,11 @@ describe('VZ011 / VZ107 images the card cannot load', () => {
     expect(codes('<script id="a" src="chart.js"></script>')).toEqual(['VZ106'])
   })
 
-  it('leaves data-viz-src, data: and allowlisted images alone', () => {
+  it('accepts explicit image imports and data URLs, while blocking direct remote images', () => {
     expect(codes('<img id="a" data-viz-src="https://example.com/a.png">')).toEqual([])
     expect(codes('<img id="a" data-viz-src="./figs/loss.png">')).toEqual([])
     expect(codes('<img id="a" src="data:image/png;base64,iVBORw0KGgo=">')).toEqual([])
-    expect(codes('<img id="a" src="https://cdn.jsdelivr.net/npm/simple-icons@13.0.0/icons/github.svg">')).toEqual([])
+    expect(codes('<img id="a" src="https://cdn.jsdelivr.net/npm/simple-icons@13.0.0/icons/github.svg">')).toEqual(['VZ011'])
   })
 })
 
@@ -447,7 +447,7 @@ describe('VZ103 missing root id', () => {
 
   it('stays quiet for static markup and for cards with an id', () => {
     expect(codes('<div class="root"><p>static</p></div>')).toEqual([])
-    expect(codes('<div class="root"></div><script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>')).toEqual([])
+    expect(codes('<div id="root"></div><script>var x = 1;</script>')).toEqual([])
     expect(codes(CLEAN)).not.toContain('VZ103')
   })
 })

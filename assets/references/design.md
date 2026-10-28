@@ -49,7 +49,7 @@ theme switches live.
   `var(--font-mono)` rather than naming a monospace family.
 - Shape: `--radius`.
 - SVG text takes `fill: var(--foreground)` at 11px effective size or larger;
-  canvas (Chart.js) text follows the same floor — see `charts.md`.
+  canvas text follows the same floor — see `charts.md`.
 
 ## Base classes
 

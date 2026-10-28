@@ -12,7 +12,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
-import { PAGE_CONFIG_GLOBAL, STYLE_IDS, STYLES } from '../src/style.ts'
+import { PAGE_CONFIG_GLOBAL, STYLE_IDS } from '../src/style.ts'
 import type { StyleFilesView } from '../src/style-files.ts'
 import { VisualizeSection, type StyleFilesClient, type StyleForm, type StyleFormSnapshot } from '../src/client/VisualizeSection.tsx'
 import { registerSettingsSection, styleFilesClient } from '../src/client/settings.tsx'
@@ -94,7 +94,7 @@ describe('style picker', () => {
     expect(root.querySelector('[role=radiogroup]')?.getAttribute('aria-labelledby')).toBeTruthy()
     const sketch = root.querySelector('[data-style=sketch] iframe')!
     expect(sketch.getAttribute('sandbox')).toBe('allow-scripts')
-    expect(sketch.getAttribute('srcdoc')).toContain(STYLES.sketch.fontHref!.replaceAll('&', '&amp;'))
+    expect(sketch.getAttribute('srcdoc')).toContain('var STYLE = "sketch";')
     expect(sketch.getAttribute('srcdoc')).toContain('本周注册量上涨 18%')
     expect(root.textContent).toContain('白板手绘')
   })

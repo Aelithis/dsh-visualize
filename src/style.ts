@@ -7,7 +7,7 @@
  * - hard style, injected by the frame shell and therefore deterministic:
  *   values for the frame's `--dsh-viz-*` hooks (one `light-dark()` value
  *   covers both appearances, because the frame's `color-scheme` follows the
- *   host), an optional webfont stylesheet, a small scoped CSS block, and the
+ *   host), system fonts, a small scoped CSS block, and the
  *   chart defaults `dshViz.chartDefaults` applies on top of the tokens;
  * - soft style, a short prose guide (`assets/styles/<id>.md`) the skill
  *   provider appends to the skill body, which overrides only the taste
@@ -59,8 +59,6 @@ export interface StylePreset {
    * should set the whole family it belongs to.
    */
   vars: Readonly<Record<string, string>>
-  /** Webfont stylesheet loaded in the frame `<head>`; absent for system type. */
-  fontHref?: string
   /** Scoped CSS appended after the base stylesheet. */
   extraCss?: string
   /** Defaults `dshViz.chartDefaults` applies to Chart.js. */
@@ -78,8 +76,6 @@ function ld(light: string, dark: string): string {
 function series(pairs: readonly (readonly [string, string])[]): Record<string, string> {
   return Object.fromEntries(pairs.map(([light, dark], i) => [`series-${i + 1}`, ld(light, dark)]))
 }
-
-const GOOGLE_FONTS = 'https://fonts.googleapis.com/css2?'
 
 /** The built-in styles by id. */
 export const STYLES: Readonly<Record<StyleId, StylePreset>> = {
@@ -107,12 +103,10 @@ export const STYLES: Readonly<Record<StyleId, StylePreset>> = {
       'context': ld('#8a8a8a', '#6f6f6f'),
       'grid': ld('rgb(0 0 0 / 8%)', 'rgb(255 255 255 / 9%)'),
       'axis': ld('rgb(26 26 26 / 60%)', 'rgb(242 239 233 / 60%)'),
-      'font-display': "'Source Serif 4', 'Noto Serif SC', 'Songti SC', serif",
-      'font-sans': "'Libre Franklin', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif",
+      'font-display': "'Songti SC', 'STSong', 'Times New Roman', serif",
+      'font-sans': "system-ui, -apple-system, 'Segoe UI', 'PingFang SC', sans-serif",
       'radius': '2px',
     },
-    fontHref: `${GOOGLE_FONTS}family=Source+Serif+4:opsz,wght@8..60,400;8..60,600`
-      + '&family=Libre+Franklin:wght@400;500;600&family=Noto+Serif+SC:wght@500;700&display=swap',
     extraCss: 'h1, h2, h3 { font-weight: 600; letter-spacing: -0.005em; }',
     chart: { pointRadius: 0, valueAxisLine: false },
   },
@@ -134,11 +128,10 @@ export const STYLES: Readonly<Record<StyleId, StylePreset>> = {
       'grid-axes': 'none',
       'axis': ld('rgb(17 17 17 / 70%)', 'rgb(236 236 236 / 70%)'),
       'line-width': '1.5',
-      'font-display': "'STIX Two Text', 'Noto Serif SC', 'Songti SC', serif",
-      'font-sans': "'STIX Two Text', 'Noto Serif SC', 'Songti SC', serif",
+      'font-display': "'Songti SC', 'STSong', 'Times New Roman', serif",
+      'font-sans': "'Songti SC', 'STSong', 'Times New Roman', serif",
       'radius': '2px',
     },
-    fontHref: `${GOOGLE_FONTS}family=STIX+Two+Text:wght@400;500;600&family=Noto+Serif+SC:wght@400;600&display=swap`,
     chart: {
       pointRadius: 3,
       pointStyles: ['circle', 'triangle', 'rect', 'rectRot', 'crossRot', 'star'],
@@ -162,14 +155,12 @@ export const STYLES: Readonly<Record<StyleId, StylePreset>> = {
       'grid-axes': 'none',
       'axis': ld('rgb(30 30 30 / 60%)', 'rgb(236 236 236 / 60%)'),
       'line-width': '2.5',
-      'font-display': "'Kalam', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive",
-      'font-sans': "'Kalam', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive",
-      'font-mono': "'LXGW WenKai Mono TC', ui-monospace, monospace",
+      'font-display': "'Kaiti SC', 'STKaiti', cursive",
+      'font-sans': "'Kaiti SC', 'STKaiti', cursive",
+      'font-mono': "ui-monospace, 'SF Mono', monospace",
       'font-size-base': '15px',
       'radius': '10px',
     },
-    fontHref: `${GOOGLE_FONTS}family=Kalam:wght@400;700&family=LXGW+WenKai+TC:wght@400;700`
-      + '&family=LXGW+WenKai+Mono+TC:wght@400&display=swap',
     // A hand-drawn card edge, and exact figures back in a legible sans.
     extraCss: `.card { border-width: 1.5px; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; }
 .viz-stat-value, table { font-family: ${SYSTEM_SANS}; }`,
@@ -193,13 +184,12 @@ export const STYLES: Readonly<Record<StyleId, StylePreset>> = {
       'grid-axes': 'both',
       'grid-dash': '2 4',
       'line-width': '1.5',
-      'font-display': "'JetBrains Mono', 'LXGW WenKai Mono TC', 'Sarasa Mono SC', ui-monospace, 'SF Mono', monospace",
-      'font-sans': "'JetBrains Mono', 'LXGW WenKai Mono TC', 'Sarasa Mono SC', ui-monospace, 'SF Mono', monospace",
-      'font-mono': "'JetBrains Mono', 'LXGW WenKai Mono TC', 'Sarasa Mono SC', ui-monospace, 'SF Mono', monospace",
+      'font-display': "ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
+      'font-sans': "ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
+      'font-mono': "ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
       'font-size-base': '13px',
       'radius': '0px',
     },
-    fontHref: `${GOOGLE_FONTS}family=JetBrains+Mono:wght@400;500;700&family=LXGW+WenKai+Mono+TC:wght@400;700&display=swap`,
     extraCss: 'body { font-variant-numeric: tabular-nums; }',
     chart: { tension: 0, pointRadius: 2, pointStyles: ['rect'] },
   },

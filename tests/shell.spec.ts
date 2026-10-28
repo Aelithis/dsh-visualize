@@ -17,6 +17,7 @@ describe('buildFrameDoc', () => {
     expect(FRAME_CSP).toContain("default-src 'none'")
     expect(FRAME_CSP).toContain('connect-src blob: data:')
     expect(FRAME_CSP).toContain("frame-src 'none'")
+    expect(FRAME_CSP).not.toMatch(/https?:|cdn|fonts\./u)
   })
 
   it('embeds the fragment verbatim and escapes the title', () => {

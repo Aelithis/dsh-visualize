@@ -53,7 +53,7 @@ export interface Config {
    * Same-turn self-repair (see self-repair.ts): when a turn is about to end
    * with a failed or broken card, or with card markup pasted into the reply
    * instead of rendered, steer one short correction into the same turn.
-   * Default on (absent reads as on); hosts without the stop boundary ignore it.
+   * Default off; enable explicitly. Hosts without the stop boundary ignore it.
    */
   selfRepair?: boolean
 }
@@ -62,7 +62,7 @@ export interface Config {
 export const Config: z<Config> = z.object({
   maxFragmentBytes: z.natural().default(1_000_000),
   style: styleFieldSchema(),
-  selfRepair: z.boolean().default(true).description('Same-turn self-repair · 同回合自我修复'),
+  selfRepair: z.boolean().default(false).description('Same-turn self-repair · 同回合自我修复'),
 }) as unknown as z<Config>
 
 /**
@@ -91,7 +91,7 @@ export function apply(ctx: Context, config: Config): void {
   injectPageConfig(ctx, style)
   registerStyleFiles(ctx)
   declineGeneratedSettingsPage(ctx)
-  if (config.selfRepair !== false) installSelfRepair(ctx)
+  if (config.selfRepair === true) installSelfRepair(ctx)
 }
 
 /** The structured index row this plugin contributes (see `@deepseek-ai/dsh-host-webserver`). */

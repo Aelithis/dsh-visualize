@@ -40,8 +40,6 @@ export interface LintRule {
 /** Hosts a fragment may load static resources from, as the frame CSP lists them. */
 export const ALLOWED_HOSTS: readonly string[] = RESOURCE_ORIGINS.map(origin => origin.slice('https://'.length))
 
-const HOST_LIST = ALLOWED_HOSTS.join(', ')
-
 /**
  * The rule table. Codes are stable: the model sees them, and a repeated code
  * is what the loop guard counts. Error rules are `VZ0xx`, warn rules `VZ1xx`.
@@ -72,12 +70,12 @@ export const LINT_RULES = {
   VZ005: {
     severity: 'error',
     message: 'external resource the card blocks',
-    fix: `load it over https from an allowlisted host (${HOST_LIST}), or inline it`,
+    fix: 'inline the resource; remote scripts, stylesheets, fonts, and assets are blocked',
   },
   VZ006: {
     severity: 'error',
     message: 'CDN resource without a pinned version',
-    fix: 'pin an exact version in the URL, e.g. https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js',
+    fix: 'inline the resource; remote library URLs are blocked',
   },
   VZ007: {
     severity: 'error',

@@ -6,10 +6,9 @@
  * Security model (aligned with Codex's /visualize render pipeline): the card
  * mounts `<iframe sandbox="allow-scripts">` — an opaque origin with no access
  * to the host page — and this document's own CSP meta tag confines what runs
- * inside: inline script/style plus a fixed CDN allowlist, no fetch/XHR/
+ * inside: inline script/style with local blob/data resources, no fetch/XHR/
  * WebSocket (`connect-src` covers only blob/data), no nested frames, no form
- * posts. The allowlist is a protocol constant shared with the bundled skill
- * text, not configuration.
+ * posts. Remote resources are never admitted.
  *
  * @module @nagi-ovo/dsh-visualize/shell
  */
@@ -18,16 +17,8 @@ import { FRAME_CSS, PAGE_CSS } from './frame-css.ts'
 import { DEFAULT_STYLE, STYLES, type StyleId } from './style.ts'
 import { vizHelperScript, type CardState } from './viz-helper.ts'
 
-/** CDN origins a fragment may load static resources from. */
-export const RESOURCE_ORIGINS = [
-  'https://cdnjs.cloudflare.com',
-  'https://cdn.jsdelivr.net',
-  'https://esm.sh',
-  'https://fonts.bunny.net',
-  'https://fonts.googleapis.com',
-  'https://fonts.gstatic.com',
-  'https://unpkg.com',
-] as const
+/** Remote static resources are disabled. */
+export const RESOURCE_ORIGINS: readonly string[] = []
 
 const RESOURCE_SOURCES = ['blob:', 'data:', ...RESOURCE_ORIGINS].join(' ')
 
@@ -82,7 +73,7 @@ export interface FrameDocOptions {
    */
   variant?: FrameVariant
   /**
-   * Card style (style.ts) whose tokens, webfont and scoped CSS the frame
+   * Card style (style.ts) whose tokens and scoped CSS the frame
    * takes; its token values win over the bridged host palette. Defaults to
    * `whale`, which adds nothing to the host bridge. Applies to both variants.
    */
@@ -132,7 +123,7 @@ export function buildFrameDoc(options: FrameDocOptions): string {
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="${FRAME_CSP}">
 <title>${escapeHtml(options.title)}</title>
-${style.fontHref === undefined ? '' : `<link rel="stylesheet" href="${escapeHtml(style.fontHref)}">\n`}<style>${FRAME_CSS}${options.variant === 'page' ? PAGE_CSS : ''}
+<style>${FRAME_CSS}${options.variant === 'page' ? PAGE_CSS : ''}
 :root { ${rootVars} color-scheme: ${options.colorScheme}; }
 ${options.variant === 'page' ? '' : 'body { padding: 4px 2px; }'}${style.extraCss === undefined ? '' : `\n${style.extraCss}`}</style>
 <script>${vizHelperScript(style.id, style.chart, options.promptable === true ? options.reportToken : undefined, {

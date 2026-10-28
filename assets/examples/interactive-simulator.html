@@ -1,84 +1,55 @@
-<!-- Worked example: sliders driving a Chart.js area curve with summary stats.
-     Idioms on display: pinned CDN build; dshViz.bind wiring named controls
-     to one render and its readouts; dshViz.chart applying the card style's
-     chart defaults, drawing once fonts settle with the latest data and its
-     free entrance, then updating in place; theme.fade for the soft gradient
-     under the single measure; dshViz.fmt for readable numbers;
-     data-viz-keep so the reader's settings survive a reload. -->
 <div id="sim-cooling" data-viz-keep>
   <style>
-    /* Layout idiom: label | slider | right-aligned bold value on one row;
-       stats as bare label + large number, no boxes. */
-    #sim-cooling .row { display: grid; grid-template-columns: 92px 1fr 72px; align-items: center; gap: 12px; margin-bottom: 10px; }
-    #sim-cooling .row output { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
-    #sim-cooling .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
-    #sim-cooling .stats { display: flex; flex-wrap: wrap; gap: 8px 40px; margin: 14px 0 10px; }
-    #sim-cooling .stats .viz-stat-value { font-size: 1.5em; font-variant-numeric: tabular-nums; }
+    #sim-cooling .row { display: grid; grid-template-columns: 92px 1fr 80px; align-items: center; gap: 12px; margin: 12px 0; }
+    #sim-cooling output { font-variant-numeric: tabular-nums; }
+    #sim-cooling svg { width: 100%; height: auto; overflow: visible; }
+    #sim-cooling text { fill: var(--text-secondary); font-size: 12px; }
+    #sim-cooling .curve { fill: none; stroke: var(--viz-series-1); stroke-width: 3; }
+    #sim-cooling .axis { stroke: var(--viz-axis); }
+    #sim-cooling .plot { animation: cooling-enter 400ms ease-out; }
+    @keyframes cooling-enter { from { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { #sim-cooling .plot { animation: none; } }
   </style>
-  <div class="head">
-    <h3 style="margin: 0;">Coffee cooling</h3>
-    <span class="text-small">T(t) = Tₐ + (T₀ − Tₐ)·e⁻ᵏᵗ</span>
-  </div>
+  <h3>咖啡冷却模拟</h3>
   <div class="row">
-    <label class="form-label" for="sim-cooling-rate" style="margin: 0;">Cooling rate</label>
-    <input id="sim-cooling-rate" name="rate" type="range" min="2" max="30" step="1" value="10">
+    <label for="cooling-rate">冷却速率</label>
+    <input id="cooling-rate" name="rate" type="range" min="2" max="30" value="10">
     <output data-viz-out="rate"></output>
   </div>
   <div class="row">
-    <label class="form-label" for="sim-cooling-minutes" style="margin: 0;">Window</label>
-    <input id="sim-cooling-minutes" name="minutes" type="range" min="15" max="120" step="5" value="60">
+    <label for="cooling-time">观察时长</label>
+    <input id="cooling-time" name="minutes" type="range" min="15" max="120" step="5" value="60">
     <output data-viz-out="minutes"></output>
   </div>
-  <div class="stats">
-    <div>
-      <div class="text-small">Temp at window end</div>
-      <div class="viz-stat-value" data-viz-out="end">—</div>
-    </div>
-    <div>
-      <div class="text-small">Drinkable (≤60°C) after</div>
-      <div class="viz-stat-value" data-viz-out="drink">—</div>
-    </div>
-  </div>
-  <!-- Two-beat entrance: the container (axes, grid) fades in first, then the
-       line sweeps across it. animation, not transition, so it self-runs. -->
-  <div style="height: 220px; animation: sim-cooling-fade 300ms ease-out;"><canvas id="sim-cooling-plot"></canvas></div>
-  <style>@keyframes sim-cooling-fade { from { opacity: 0; } }</style>
+  <p>结束温度：<output data-viz-out="end"></output>；降至 60°C 所需时间：<output data-viz-out="drink"></output></p>
+  <svg viewBox="0 0 600 250" role="img" aria-label="温度随时间变化的曲线">
+    <g class="plot">
+      <path class="axis" d="M45 15V215H580" fill="none"></path>
+      <text x="5" y="20">90°C</text><text x="5" y="217">22°C</text>
+      <text x="45" y="240">0 分钟</text><text id="cooling-end-label" x="580" y="240" text-anchor="end"></text>
+      <path id="cooling-curve" class="curve"></path>
+    </g>
+  </svg>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script>
 (function () {
-  // Newton's cooling: T(t) = Ta + (T0 - Ta) * e^(-kt), coffee starting hot.
-  var T0 = 90, TA = 22, DRINKABLE = 60;
-  var deg = { digits: 0, unit: '°C' };
-
-  // Canvas cannot read CSS: the theme hands the chart resolved colours.
-  var plot = dshViz.chart('#sim-cooling-plot', function (theme) {
-    return {
-      type: 'line',
-      data: { datasets: [{ borderColor: theme.series[0], backgroundColor: theme.fade(theme.series[0]), fill: true, pointRadius: 0, tension: 0.25 }] },
-      options: {
-        scales: {
-          x: { ticks: { maxTicksLimit: 9 } },
-          y: { ticks: { callback: function (v) { return dshViz.fmt(v, deg); }, maxTicksLimit: 6 } },
-        },
-        interaction: { mode: 'index', intersect: false },
-      },
-    };
-  });
-
-  // Runs now and on every slider move; what it returns fills the readouts.
-  dshViz.bind('#sim-cooling', function (p) {
-    var k = p.rate / 100, minutes = [], temps = [];
-    for (var t = 0; t <= p.minutes; t++) {
-      minutes.push(t);
-      temps.push(TA + (T0 - TA) * Math.exp(-k * t));
+  var root = document.getElementById('sim-cooling');
+  var curve = root.querySelector('#cooling-curve');
+  var label = root.querySelector('#cooling-end-label');
+  dshViz.bind(root, function (p) {
+    var k = p.rate / 100, points = [], end = 90;
+    for (var i = 0; i <= 120; i++) {
+      var time = p.minutes * i / 120;
+      end = 22 + 68 * Math.exp(-k * time);
+      points.push((i === 0 ? 'M' : 'L') + (45 + i * 535 / 120).toFixed(2) + ' ' + (215 - (end - 22) * 200 / 68).toFixed(2));
     }
-    plot.update(minutes, temps); // transitions in place; the entrance never replays
+    curve.setAttribute('d', points.join(' '));
+    label.textContent = p.minutes + ' 分钟';
     return {
       rate: dshViz.fmt(k, { digits: 2, unit: '/min' }),
-      minutes: p.minutes + ' min',
-      end: dshViz.fmt(temps[temps.length - 1], deg),
-      drink: dshViz.fmt(Math.log((T0 - TA) / (DRINKABLE - TA)) / k, { digits: 1, unit: ' min' }),
+      minutes: p.minutes + ' 分钟',
+      end: dshViz.fmt(end, { digits: 1, unit: '°C' }),
+      drink: dshViz.fmt(Math.log(68 / 38) / k, { digits: 1, unit: ' 分钟' })
     };
   });
 })();

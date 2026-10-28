@@ -2,7 +2,7 @@
   "name": "@nagi-ovo/dsh-visualize",
   "description": "DSH inline visualization plugin: a visualize tool + bundled skill let the model render interactive HTML fragments as sandboxed cards in the conversation (Codex /visualize semantics).",
   "icon": "assets/icon.svg",
-  "version": "0.1.7",
+  "version": "0.1.8-private.1",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -33,11 +33,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nagi-ovo/dsh-visualize.git"
+    "url": "git+https://github.com/Aelithis/dsh-visualize.git"
   },
-  "homepage": "https://github.com/Nagi-ovo/dsh-visualize#readme",
+  "homepage": "https://github.com/Aelithis/dsh-visualize#readme",
   "bugs": {
-    "url": "https://github.com/Nagi-ovo/dsh-visualize/issues"
+    "url": "https://github.com/Aelithis/dsh-visualize/issues"
   },
   "dsh": {
     "bundle": {

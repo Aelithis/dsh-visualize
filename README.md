@@ -1,4 +1,10 @@
-# dsh-visualize
+# dsh-visualize 私人离线版
+
+基于上游 cf6b3a3f5a3f02b83a380890a5b672a350715344，版本 0.1.8-private.1。卡片只运行自包含 HTML、SVG、CSS 和 JavaScript，CSP 不允许远程资源；所有预设使用系统字体。默认以文字回答，按需生成交互卡片；同回合自修复默认关闭，仅 selfRepair: true 时启用。
+
+保留明确指定 data-viz-src 的外链图片导入，该操作会请求指定图片地址。正常模型请求仍由 DSH 的已配置模型服务处理。本分支已提交构建产物，没有 prepare/install 钩子；从 Fork 固定提交安装，不跟随上游更新。
+
+以下为上游功能说明，在线依赖示例已改为离线资源规则。
 
 ![dsh-visualize](assets/social-preview.jpg)
 
@@ -20,14 +26,14 @@
 
 ## 安装
 
-推荐用 npm 装到 DSH 的 `web` profile：
+从私人 Fork 的已验收提交安装到 DSH 的 `web` profile：
 
 ```sh
-dsh plugin --profile web add @nagi-ovo/dsh-visualize
+dsh plugin --profile web add github:Aelithis/dsh-visualize#<固定提交SHA>
 # 如果 dsh web 正在运行，重启后刷新页面
 ```
 
-也可以从 GitHub 安装：`dsh plugin --profile web add github:Nagi-ovo/dsh-visualize`。可以运行 `dsh --profile web --dump-config` 确认插件已经进入最终配置。需要修改源码时，克隆仓库并在仓库目录运行 `dsh plugin --profile web add .`；构建产物已经提交，不需要额外构建。使用社区 [plugin-registry](https://github.com/dsh-external/plugin-registry) 的用户也可以从「设置 → 插件」安装。
+也可以从 GitHub 安装：`dsh plugin --profile web add github:Aelithis/dsh-visualize#<固定提交SHA>`。可以运行 `dsh --profile web --dump-config` 确认插件已经进入最终配置。需要修改源码时，克隆仓库并在仓库目录运行 `dsh plugin --profile web add .`；构建产物已经提交，不需要额外构建。使用社区 [plugin-registry](https://github.com/dsh-external/plugin-registry) 的用户也可以从「设置 → 插件」安装。
 
 兼容 DSH 0.1.1-rc.2 到 0.2.1-rc.2。
 
@@ -49,7 +55,7 @@ DSH 默认会把已完成回合的工具过程折叠起来。折叠时，这一�
 
 卡片会记住你在里面做的选择：拖过的滑块、勾选的选项、填写的文字、选中的标签页，以及模型用 `dshViz.state` 保存的其他选择（比如选中的节点、当前步骤）。刷新页面、重新打开会话、模型用 `update` 修改卡片之后，卡片都会恢复成你离开时的样子；重新画的新卡片从默认值开始。状态只存在这个浏览器里，放在 DSH 页面的 localStorage 中（键名以 `dsh-visualize:state:` 开头），按会话和卡片分开，不会上传，也不会同步到别的设备或浏览器；换一个端口打开 DSH 也算另一个站点。每张卡片最多 16 KB，所有卡片合计最多 256 KB，超出时最久没改动的卡片先被清掉。想全部清空，在浏览器开发者工具的 Application → Local Storage 里删掉这些键，或者清除这个站点的数据。页面卡片的缩略图和在新窗口打开的卡片会显示已保存的状态，但新窗口里的改动不会保存。浏览器禁止存储时（例如某些隐私模式），状态只在当前页面里保留：切换主题、修改卡片不会丢，刷新后就没了。
 
-模型有时会在卡片还没真正交到你手上时就结束回答：最后一次 `visualize` 调用失败了却没有重试；卡片画出来了，但还带着会让它坏掉的 lint 警告（脚本查找不存在的元素 id、沙箱里加载不到的相对 URL）；把 HTML/SVG 当代码块贴进了回答；或者说了「我来画一张卡片」就停下了。遇到这些情况，插件会在这一轮结束前给模型发一句简短的提醒（steer），让它在同一轮里接着修好或补上调用。判断偏保守：你要的就是 HTML 代码或文件、这一轮写了项目文件、回合被你中断或出错时都不会提醒；颜色写死这类只影响风格的警告不算；每轮最多提醒 2 次，同一个问题只提醒一次。不需要的话，在 `cordis.patch.yml` 里这个插件的 `config` 下加 `selfRepair: false`。
+模型有时会在卡片还没真正交到你手上时就结束回答：最后一次 `visualize` 调用失败了却没有重试；卡片画出来了，但还带着会让它坏掉的 lint 警告（脚本查找不存在的元素 id、沙箱里加载不到的相对 URL）；把 HTML/SVG 当代码块贴进了回答；或者说了「我来画一张卡片」就停下了。遇到这些情况，插件会在这一轮结束前给模型发一句简短的提醒（steer），让它在同一轮里接着修好或补上调用。判断偏保守：你要的就是 HTML 代码或文件、这一轮写了项目文件、回合被你中断或出错时都不会提醒；颜色写死这类只影响风格的警告不算；每轮最多提醒 2 次，同一个问题只提醒一次。此功能默认关闭；需要时在插件 `config` 下显式设置 `selfRepair: true`。
 
 ## 卡片风格
 
@@ -72,12 +78,12 @@ DSH 默认会把已完成回合的工具过程折叠起来。折叠时，这一�
 | `whale` | 鲸蓝（默认）：跟 DSH 界面同一套颜色和系统字体 | 什么都行 |
 | `editorial` | 报刊：衬线标题直接写结论，一条线高亮、其余退成灰，直接标注 | 趋势、比较、「这个数说明了什么」 |
 | `paper` | 论文：衬线、L 形坐标轴、色盲安全配色，颜色加标记形状双重编码，「图 1 ·」图注 | 实验结果、学习曲线、带公式的讲解 |
-| `sketch` | 手绘：手写字体、rough.js 草图线条、荧光笔标注 | 概念、直觉、流程 |
+| `sketch` | 手绘：手写字体、内联 SVG 草图线条、荧光笔标注 | 概念、直觉、流程 |
 | `terminal` | 终端：等宽字体、直角、虚线网格、key–value 标签 | 延迟、吞吐、算法逐步执行 |
 
-风格分两层。颜色、字体、圆角、图表默认值（网格、轴线、线宽）由卡片外壳注入，每种风格都同时适配明暗主题，背景保持透明；版式和写法（标题怎么写、要不要图注、用不用 rough.js）是一段风格说明，附加在 skill 末尾交给模型。风格说明只替换 `design.md` 里的审美建议，fragment 规则、CSP、主题变量、11px 下限和 lint 都不受影响。产品界面 mockup 不套用风格，按被画产品自己的样子来。
+风格分两层。颜色、字体、圆角、图表默认值（网格、轴线、线宽）由卡片外壳注入，每种风格都同时适配明暗主题，背景保持透明；版式和写法（标题怎么写、要不要图注、草图线条）是一段风格说明，附加在 skill 末尾交给模型。风格说明只替换 `design.md` 里的审美建议，fragment 规则、CSP、主题变量、11px 下限和 lint 都不受影响。产品界面 mockup 不套用风格，按被画产品自己的样子来。
 
-每张卡片在持久化的结果和副本文件名里记下它生成时的风格，之后改设置不会改变已有卡片，会话重放、「在新窗口打开」和模型用 `update` 修改时都保持原样。有风格之前保存的卡片文件名里没有风格，`update` 时按当前设置重新渲染。模型还在写卡片时显示的预览，在 DSH 页面加载时读取设置；在设置页里切换会同时更新当前页面，手改 YAML 后刷新已打开的页面即可。`editorial`、`paper`、`sketch`、`terminal` 会从 Google Fonts 加载字体；`paper` 只在卡片里有公式时才加载 KaTeX。
+每张卡片在持久化的结果和副本文件名里记下它生成时的风格，之后改设置不会改变已有卡片，会话重放、「在新窗口打开」和模型用 `update` 修改时都保持原样。有风格之前保存的卡片文件名里没有风格，`update` 时按当前设置重新渲染。模型还在写卡片时显示的预览，在 DSH 页面加载时读取设置；在设置页里切换会同时更新当前页面，手改 YAML 后刷新已打开的页面即可。所有风格均使用系统字体；公式使用文本或内联 SVG。
 
 ### 自定义风格
 
@@ -92,10 +98,10 @@ DSH 默认会把已完成回合的工具过程折叠起来。折叠时，这一�
 
 ## 安全
 
-卡片运行在不透明来源的 sandboxed iframe 中，不能接触宿主页面。在新窗口打开（包括页面模式的「打开页面」）时，新标签页本身不含任何模型代码，fragment 依旧只在同样 sandbox 和 CSP 的 iframe 里运行，读不到 DSH 的 cookie、localStorage 或登录凭据。CSP 会阻止网络请求、嵌套页面和表单提交，只允许从固定 CDN 加载静态资源。单个 fragment 默认上限为 `1000000` 字节，可以通过 `maxFragmentBytes` 调整。图片不需要放宽这条 CSP：插件在服务端取图，再以 `data:` URL 交给 iframe。工作区图片必须位于会话工作区之内，按路径判断和跟随符号链接之后都要在里面，并且通过 DSH 自己的文件系统服务读取。网络图片只从公网地址下载：每一次连接（包括最多 3 次重定向）都在 DNS 解析之后检查，loopback、内网、link-local 等地址一律拒绝，所以卡片不能被用来访问 `localhost`、局域网或云厂商的 metadata 服务。每次下载有 10 秒超时和大小上限，字节必须符合图片格式；SVG 原样保存，因为它只会通过 `<img>` 渲染，脚本和外部加载在这种方式下都不生效。存下来的图片只提供给已认证的 DSH 页面，并且按下载文件返回，不会作为可渲染的页面打开。卡片往输入框里填内容时，由 DSH 页面这边把关：只接受这张卡片自己的 iframe 发来的、由你的点击触发的请求，限长、限频，只写进空的输入框或替换卡片自己刚写的那句，并且永远不替你发送。卡片保存状态时也是一样：DSH 页面只接受这张卡片自己的 iframe 发来的状态，由页面决定存在哪张卡片名下（卡片没法写别的卡片的状态），并且限制大小。
+卡片运行在不透明来源的 sandboxed iframe 中，不能接触宿主页面。在新窗口打开（包括页面模式的「打开页面」）时，新标签页本身不含任何模型代码，fragment 依旧只在同样 sandbox 和 CSP 的 iframe 里运行，读不到 DSH 的 cookie、localStorage 或登录凭据。CSP 会阻止网络请求、嵌套页面和表单提交，静态资源只允许内联、data: 或 blob:。单个 fragment 默认上限为 `1000000` 字节，可以通过 `maxFragmentBytes` 调整。图片不需要放宽这条 CSP：插件在服务端取图，再以 `data:` URL 交给 iframe。工作区图片必须位于会话工作区之内，按路径判断和跟随符号链接之后都要在里面，并且通过 DSH 自己的文件系统服务读取。网络图片只从公网地址下载：每一次连接（包括最多 3 次重定向）都在 DNS 解析之后检查，loopback、内网、link-local 等地址一律拒绝，所以卡片不能被用来访问 `localhost`、局域网或云厂商的 metadata 服务。每次下载有 10 秒超时和大小上限，字节必须符合图片格式；SVG 原样保存，因为它只会通过 `<img>` 渲染，脚本和外部加载在这种方式下都不生效。存下来的图片只提供给已认证的 DSH 页面，并且按下载文件返回，不会作为可渲染的页面打开。卡片往输入框里填内容时，由 DSH 页面这边把关：只接受这张卡片自己的 iframe 发来的、由你的点击触发的请求，限长、限频，只写进空的输入框或替换卡片自己刚写的那句，并且永远不替你发送。卡片保存状态时也是一样：DSH 页面只接受这张卡片自己的 iframe 发来的状态，由页面决定存在哪张卡片名下（卡片没法写别的卡片的状态），并且限制大小。
 
 ## 限制
 
 目前只在 Web UI 中渲染交互卡片，TUI 和 headless 客户端会显示普通工具结果。卡片只能把内容填进输入框，不能直接发送消息。
 
-灵感来自 Codex 桌面端的 `/visualize`；skill 的分层 reference 和 Chart.js 优先路线借鉴了 [himself65/finance-skills](https://github.com/himself65/finance-skills/tree/main/plugins/ui-tools/skills/generative-ui)。
+灵感来自 Codex 桌面端的 `/visualize`；skill 的分层 reference 和 图表参考结构借鉴了 [himself65/finance-skills](https://github.com/himself65/finance-skills/tree/main/plugins/ui-tools/skills/generative-ui)。

@@ -11,7 +11,7 @@ import { Context } from "@deepseek-ai/cordis";
  * - hard style, injected by the frame shell and therefore deterministic:
  *   values for the frame's `--dsh-viz-*` hooks (one `light-dark()` value
  *   covers both appearances, because the frame's `color-scheme` follows the
- *   host), an optional webfont stylesheet, a small scoped CSS block, and the
+ *   host), system fonts, a small scoped CSS block, and the
  *   chart defaults `dshViz.chartDefaults` applies on top of the tokens;
  * - soft style, a short prose guide (`assets/styles/<id>.md`) the skill
  *   provider appends to the skill body, which overrides only the taste
@@ -146,7 +146,7 @@ interface Config {
    * Same-turn self-repair (see self-repair.ts): when a turn is about to end
    * with a failed or broken card, or with card markup pasted into the reply
    * instead of rendered, steer one short correction into the same turn.
-   * Default on (absent reads as on); hosts without the stop boundary ignore it.
+   * Default off; enable explicitly. Hosts without the stop boundary ignore it.
    */
   selfRepair?: boolean;
 }

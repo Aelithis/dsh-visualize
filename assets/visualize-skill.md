@@ -6,9 +6,9 @@ side-by-side comparisons, and product-screen mockups. The `visualize` tool
 renders your markup as a live sandboxed card in the conversation, or, for
 something to work in rather than glance at, as a full page in its own tab.
 
-- Reach for a card when seeing or manipulating something answers the question
-  better than prose would. A request that merely mentions data or a web page
-  does not by itself call for one.
+- Default to prose. Use a card only when requested or when interaction materially
+  helps the user understand or decide. Mentioning data or a web page alone
+  does not call for a card.
 - When the user asks for a real deliverable — a website, a page in their app,
   a component, a standalone file — build project files instead; that is not an
   in-conversation card.
@@ -23,13 +23,10 @@ first chart, read `references/charts.md`; before styling anything, read
 `references/design.md`:
 
 - `references/design.md` — taste, theme tokens, base classes, layout.
-- `references/charts.md` — Chart.js-first charting, theme-color resolution,
-  hand-rolled SVG rules, entrance animation recipes.
-- `examples/interactive-simulator.html` — sliders wired with `dshViz.bind`
-  driving a `dshViz.chart` area curve: theme colors, gradient fill, in-place
-  updates, kept settings. The template for any standard chart.
+- `references/charts.md` — self-contained SVG charting and animation.
+- `examples/interactive-simulator.html` — local SVG cooling curve with sliders.
 - `examples/comparison-chart.html` — a hand-rolled SVG comparison with
-  direct labels and a hover detail. The template for custom visuals only.
+  direct labels and a hover detail. A template for comparison visuals.
 
 ## Calling the tool
 
@@ -131,12 +128,10 @@ retrying.
 - Inline `<script>` and `<style>` work. Network APIs do not — `fetch`, XHR,
   WebSocket, and form submission are blocked by policy and fail without an
   error message.
-- External static assets may come only from these hosts:
-  `cdnjs.cloudflare.com`, `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`,
-  `fonts.googleapis.com`, `fonts.gstatic.com`, `fonts.bunny.net` — always
-  with a pinned version.
-- Show an image the card cannot load itself — a workspace file, or a web
-  image off that list — with `data-viz-src`; see "Images" below.
+- Keep HTML, SVG, CSS, and JavaScript self-contained. Remote scripts, fonts,
+  stylesheets, and static resources are blocked; do not use CDN libraries.
+- Import a workspace image or an explicitly requested public web image with
+  `data-viz-src`; see "Images" below.
 - Every color comes from a theme variable or a `light-dark()` pair — the
   token list and utility classes are in `references/design.md`.
 - Never declare `color-scheme` yourself. The document already carries the
@@ -144,7 +139,7 @@ retrying.
   your subtree to the viewer's OS preference, which can invert your text
   against the host-matched background.
 - A chart's first draw animates in, once; `references/charts.md` has the
-  recipes (Chart.js gives this by default).
+  self-contained SVG recipes.
 - Before finishing, confirm every element your script queries exists, every
   identifier is defined, and the main interaction visibly changes the output.
 
@@ -173,13 +168,11 @@ dshViz.bind('#my-viz', function (p) {
 - `dshViz.fmt(n, digits)` or `dshViz.fmt(n, { digits, sig, unit, percent,
   compact, sign, currency })` formats a number with grouping. `unit` is
   appended as written (`' min'`, `'°C'`); `percent` takes a fraction.
-- `dshViz.chart` creates a Chart.js chart that `render` can feed from its
-  first call; see `references/charts.md`.
+- Draw charts with inline SVG and ordinary JavaScript; see `references/charts.md`.
 
 ## Images
 
-The card cannot read workspace files or load images from hosts off the
-allowlist. Write `data-viz-src` on the `<img>` instead of `src`, and the tool
+The card cannot read workspace files or load remote images directly. Write `data-viz-src` on the `<img>` instead of `src`, and the tool
 embeds the image when you call it:
 
 - `<img data-viz-src="figs/loss.png" alt="…">` — a file inside the
@@ -253,13 +246,12 @@ appended at the end of this skill under "Active card style", together with
 any style files the user wrote. A card's look has two layers:
 
 - The frame applies the style's hard parts on its own: colour tokens, fonts,
-  radius, text sizes, and the chart defaults `dshViz.chartDefaults` sets (see
-  `references/charts.md`). Keep using the theme variables and base classes;
+  radius, and text sizes. Keep using the theme variables and base classes;
   do not restate a style's colour values or load its fonts yourself.
 - The style guide and the user's style files replace only the Taste section
   of `references/design.md`. Everything else in this skill still applies:
   the fragment rules, theme variables and `light-dark()`, the 11px floor, the
-  size limit, the CDN allowlist, the chart setup, and every lint finding. A
+  size limit, the offline resource policy, the chart setup, and every lint finding. A
   style that says "no gradient fills" overrides the default gradient; no
   style lets a card fetch, skip the theme variables, or set `color-scheme`.
 - When they disagree, the order is: what the user asks for in this
@@ -269,7 +261,7 @@ any style files the user wrote. A card's look has two layers:
   own colours, type and radius, still as `light-dark()` pairs.
 - When a user style asks for specific colours, set them as custom properties
   on your root element (`#my-viz { --viz-series-1: light-dark(#…, #…); }`);
-  your CSS and `dshViz.chartDefaults(Chart, root)` both read them there.
+  SVG and CSS both read them there.
 
 ## In the reply
 
