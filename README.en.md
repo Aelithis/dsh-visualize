@@ -1,6 +1,6 @@
 # dsh-visualize private offline edition
 
-Version 0.1.8-private.1, based on upstream cf6b3a3f5a3f02b83a380890a5b672a350715344. Cards use self-contained HTML/SVG/JS and system fonts; remote resources are blocked. Default to prose and opt in to selfRepair explicitly. Explicit data-viz-src image imports still perform their requested download. Install a reviewed fixed commit from Aelithis/dsh-visualize.
+Version 0.1.10-private.1, based on upstream 6a713a74795fc3043eaad86acf49ac23211ac238. Cards use self-contained HTML/SVG/JS and system fonts; remote resources are blocked. Default to prose and opt in to selfRepair explicitly. Explicit data-viz-src image imports still perform their requested download. Install a reviewed fixed commit from Aelithis/dsh-visualize.
 
 ![dsh-visualize](assets/social-preview.jpg)
 
@@ -22,16 +22,20 @@ DSH does not have to answer with text alone. When the model calls `visualize`, t
 
 ## Install
 
-Install from npm into DSH's `web` profile:
+**Desktop:** open **插件 (Plugins)** in the sidebar, choose **添加插件 (Add plugin)**, enter `github:Aelithis/dsh-visualize#<reviewed-commit>`, then restart DSH. You can also run `dsh plugin --profile desktop add github:Aelithis/dsh-visualize#<reviewed-commit>`.
+
+Known issue: on Desktop, **Open in new window** does nothing, and neither does **Open page** on page cards. Use **Show here** instead.
+
+**Web:** install the reviewed private Fork commit into the `web` profile:
 
 ```sh
-dsh plugin --profile web add @nagi-ovo/dsh-visualize
+dsh plugin --profile web add github:Aelithis/dsh-visualize#<reviewed-commit>
 # If dsh web is running, restart it and refresh the page.
 ```
 
-GitHub also works: `dsh plugin --profile web add github:Nagi-ovo/dsh-visualize`. Run `dsh --profile web --dump-config` to confirm that the plugin is present in the final configuration. For local development, clone the repository and run `dsh plugin --profile web add .` from its root; committed build output means no separate build step is required. Users of the community [plugin-registry](https://github.com/dsh-external/plugin-registry) can also install it from Settings → Plugins.
+GitHub also works: `dsh plugin --profile web add github:Aelithis/dsh-visualize#<reviewed-commit>`. Run `dsh --profile web --dump-config` to confirm that the plugin is present in the final configuration. For local development, clone the repository and run `dsh plugin --profile web add .` from its root; committed build output means no separate build step is required. Users of the community [plugin-registry](https://github.com/dsh-external/plugin-registry) can also install it from Settings → Plugins.
 
-Compatible with DSH 0.1.1-rc.2 through 0.2.1-rc.2.
+Compatible with DSH 0.1.1-rc.2 through 0.2.2-rc.3.
 
 ## Use it
 

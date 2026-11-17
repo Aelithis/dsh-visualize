@@ -1,6 +1,6 @@
 # dsh-visualize 私人离线版
 
-基于上游 cf6b3a3f5a3f02b83a380890a5b672a350715344，版本 0.1.8-private.1。卡片只运行自包含 HTML、SVG、CSS 和 JavaScript，CSP 不允许远程资源；所有预设使用系统字体。默认以文字回答，按需生成交互卡片；同回合自修复默认关闭，仅 selfRepair: true 时启用。
+基于上游 6a713a74795fc3043eaad86acf49ac23211ac238，版本 0.1.10-private.1。卡片只运行自包含 HTML、SVG、CSS 和 JavaScript，CSP 不允许远程资源；所有预设使用系统字体。默认以文字回答，按需生成交互卡片；同回合自修复默认关闭，仅 selfRepair: true 时启用。
 
 保留明确指定 data-viz-src 的外链图片导入，该操作会请求指定图片地址。正常模型请求仍由 DSH 的已配置模型服务处理。本分支已提交构建产物，没有 prepare/install 钩子；从 Fork 固定提交安装，不跟随上游更新。
 
@@ -35,7 +35,7 @@ dsh plugin --profile web add github:Aelithis/dsh-visualize#<固定提交SHA>
 
 也可以从 GitHub 安装：`dsh plugin --profile web add github:Aelithis/dsh-visualize#<固定提交SHA>`。可以运行 `dsh --profile web --dump-config` 确认插件已经进入最终配置。需要修改源码时，克隆仓库并在仓库目录运行 `dsh plugin --profile web add .`；构建产物已经提交，不需要额外构建。使用社区 [plugin-registry](https://github.com/dsh-external/plugin-registry) 的用户也可以从「设置 → 插件」安装。
 
-兼容 DSH 0.1.1-rc.2 到 0.2.1-rc.2。
+兼容 DSH 0.1.1-rc.2 到 0.2.2-rc.3。
 
 ## 怎么用
 
